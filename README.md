@@ -1,1 +1,1 @@
-# sql
+# sql codes when practicing the course
