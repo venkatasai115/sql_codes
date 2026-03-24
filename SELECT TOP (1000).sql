@@ -62,6 +62,10 @@ use SalesDB
 -- WHERE LEN(firstname) - LEN(TRIM(firstname)) > 0
 
 
-SELECT DATEPART(WEEKDAY, OrderDate)
-FROM Sales.Orders
+-- SELECT DATEPART(WEEKDAY, OrderDate)
+-- FROM Sales.Orders
 -- where MONTH(OrderDate) = 2
+
+SELECT OrderId, CreationTime,
+    'Day' + FORMAT(CreationTime, ' ddd MMM ') + ' Q ' + DATENAME(QUARTER, CreationTime) + ' ' + FORMAT(CreationTime, 'yyyy hh:mm:ss tt') AS formatted_date
+FROM Sales.Orders
