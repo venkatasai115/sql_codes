@@ -66,6 +66,60 @@ use SalesDB
 -- FROM Sales.Orders
 -- where MONTH(OrderDate) = 2
 
-SELECT OrderId, CreationTime,
-    'Day' + FORMAT(CreationTime, ' ddd MMM ') + ' Q ' + DATENAME(QUARTER, CreationTime) + ' ' + FORMAT(CreationTime, 'yyyy hh:mm:ss tt') AS formatted_date
-FROM Sales.Orders
+-- SELECT OrderId, CreationTime,
+--     'Day' + FORMAT(CreationTime, ' ddd MMM ') + ' Q ' + DATENAME(QUARTER, CreationTime) + ' ' + FORMAT(CreationTime, 'yyyy hh:mm:ss tt') AS formatted_date
+-- FROM Sales.Orders
+
+-- SELECT category, sum(Sales) AS total_sales
+-- FROM (
+--     SELECT orderID, Sales,
+--         CASE WHEN Sales > 50 THEN 'High'
+--              WHEN Sales > 20 THEN 'Medium'
+--              ELSE 'Low'
+--         END AS Category
+--     FROM Sales.Orders
+-- ) t
+-- GROUP BY category
+-- ORDER BY total_sales DESC
+
+-- SELECT orderID, Sales,
+-- case when Sales > 30 then 1
+--      else 0
+-- end as is_high_sales
+-- FROM Sales.Orders
+
+-- SELECT CustomerID, COUNT(sales_category) AS total_orders
+-- FROM(
+-- SELECT C.CustomerID, C.FirstName, o.OrderID, o.Sales,
+--         case when o.Sales > 30 then 1
+--      else 0
+--      end as sales_category
+--     from Sales.Customers as C
+--         LEFT JOIN Sales.Orders as o
+--         ON C.CustomerID = o.CustomerID ) t
+-- WHERE sales_category = 1
+-- GROUP BY  CustomerID
+
+-- SELECT MAX(Score) max_score, Country
+-- FROM Sales.Customers
+-- GROUP BY Country
+-- ORDER BY max_score DESC
+
+-- SELECT orderId, orderDate, productId, Sales, orderstatus,
+--     SUM(Sales) over() total_sales,
+--     SUM(Sales) over (PARTITION BY productId) AS total_sales_over_product,
+--     SUM(Sales) over (PARTITION BY productId, orderstatus) AS total_sales_over_product_status
+-- FROM Sales.Orders
+
+-- SELECT orderId, orderDate, OrderStatus, Sales, MONTH(orderDate) AS order_month,
+--     SUM(Sales) over(PARTITION BY OrderStatus ORDER BY MONTH(orderDate) ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS running_total_sales
+-- FROM Sales.Orders
+
+SELECT c.customerID,
+    Rank() over(ORDER BY o.Sales DESC) as sales_rank
+From Sales.Customers as C
+    LEFT JOIN Sales.Orders as o
+    ON C.CustomerID = o.CustomerID
+
+
+
