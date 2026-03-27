@@ -115,11 +115,26 @@ use SalesDB
 --     SUM(Sales) over(PARTITION BY OrderStatus ORDER BY MONTH(orderDate) ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS running_total_sales
 -- FROM Sales.Orders
 
-SELECT c.customerID,
-    Rank() over(ORDER BY o.Sales DESC) as sales_rank
-From Sales.Customers as C
-    LEFT JOIN Sales.Orders as o
-    ON C.CustomerID = o.CustomerID
+-- SELECT c.customerID,
+--     Rank() over(ORDER BY o.Sales DESC) as sales_rank
+-- From Sales.Customers as C
+--     LEFT JOIN Sales.Orders as o
+--     ON C.CustomerID = o.CustomerID
+
+-- SELECT orderId, productId, (CAST(Sales as FLOAT) / total_sales_over_product) *100 AS sales_percentage
+-- From(
+-- SELECT orderId, productId, Sales,
+--         SUM(Sales) over(PARTITION BY productId ) AS total_sales_over_product
+--     FROM Sales.Orders ) t 
+
+-- SELECT orderId, Sales
+-- from(
+-- SELECT orderId, Sales,
+--         AVG(Sales) over() AS average_sales
+--     from Sales.Orders ) t
+-- WHERE Sales > average_sales
+
+
 
 
 
