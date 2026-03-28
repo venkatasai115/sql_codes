@@ -134,7 +134,41 @@ use SalesDB
 --     from Sales.Orders ) t
 -- WHERE Sales > average_sales
 
+-- SELECT orderId, Sales, productId
+-- FROM
+--     (SELECT orderId, Sales, productId,
+--         ROW_NUMBER() OVER(partition by productId order by sales DESC) AS sales_rank
+--     FROM sales.Orders ) t
+-- WHERE sales_rank = 1
 
+-- SELECT *
+-- from
+--     (SELECT customerID,
+--         SUM(Sales) as total_sales_per_customer,
+--         ROW_NUMBER() OVER(ORDER by SUM(Sales)) as sales_rank
+--     from sales.Orders
+--     GROUP BY customerID)t
+-- WHERE sales_rank <= 2
 
+-- SELECT *, CONCAT(price_cume_dist * 100, '%') AS price_percentile
+-- from(
+-- SELECT PRODUCT, price ,
+--         PERCENT_RANK() OVER (ORDER by price desc) AS price_cume_dist
+--     FROM Sales.Products)T
+-- where price_cume_dist <= 0.4
 
+-- SELECT CustomerID,
+--     AVG(daysuntilnextorder) ,
+--     RANK() OVER(ORDER BY AVG(daysuntilnextorder) ) AS avg_rnk
+-- from(
+-- SELECT orderId, customerId, orderdate currentorder,
+--         LEAD(OrderDate) over(partition by customerId ORDER by orderdate) as nextorder,
+--         DATEDIFF(day, orderdate, LEAD(OrderDate) over(partition by customerId ORDER by orderdate)) AS daysuntilnextorder
+--     from Sales.Orders
+-- ) t
+-- GROUP BY CustomerID
 
+SELECT orderId, productId, Sales,
+    FIRST_VALUE(Sales) over(PARTITION BY productId ORDER BY Sales ) as lowest_sales,
+    LAST_VALUE(Sales) over(PARTITION BY productId ORDER BY Sales ROWS BETWEEN current row AND UNBOUNDED FOLLOWING) as highest_sales
+from Sales.Orders
