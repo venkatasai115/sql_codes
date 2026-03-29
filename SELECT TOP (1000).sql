@@ -36,7 +36,7 @@
 -- on customers.id = orders.customer_id
 -- WHERE orders.customer_id IS NULL OR customers.id IS NULL
 
-use SalesDB
+use SalesDB;
 
 -- SELECT *
 -- FROM Sales.Employees
@@ -168,7 +168,120 @@ use SalesDB
 -- ) t
 -- GROUP BY CustomerID
 
-SELECT orderId, productId, Sales,
-    FIRST_VALUE(Sales) over(PARTITION BY productId ORDER BY Sales ) as lowest_sales,
-    LAST_VALUE(Sales) over(PARTITION BY productId ORDER BY Sales ROWS BETWEEN current row AND UNBOUNDED FOLLOWING) as highest_sales
-from Sales.Orders
+-- SELECT orderId, productId, Sales,
+--     FIRST_VALUE(Sales) over(PARTITION BY productId ORDER BY Sales ) as lowest_sales,
+--     LAST_VALUE(Sales) over(PARTITION BY productId ORDER BY Sales ROWS BETWEEN current row AND UNBOUNDED FOLLOWING) as highest_sales
+-- from Sales.Orders
+
+-- SELECT customerID, total_sales,
+--     RANK() over(ORDER by total_sales )
+-- FROM
+--     (
+-- SELECT customerID,
+--         SUM(Sales) as total_sales
+--     FROM Sales.Orders
+--     GROUP BY CustomerID) t
+
+-- SELECT productId, Product, Price,
+--     (select COUNT(*) from Sales.Orders ) as total_orders
+-- FROM Sales.Products
+
+-- SELECT *
+-- FROM Sales.Customers as c
+--     LEFT JOIN (
+--     select customerId, COUNT(orderId)  as total_orders
+--     from Sales.Orders
+--     GROUP BY customerId
+-- ) as o
+--     ON c.CustomerID = o.CustomerID
+
+-- WITH
+--     CTE_total_sales
+--     as
+--     (
+--         SELECT CustomerId, SUM(Sales) as total_sales
+--         FROM Sales.Orders
+--         GROUP BY CustomerId
+--     )
+--     ,
+--     CTE_last_order_date
+--     as
+--     (
+--         SELECT CustomerId, MAX(OrderDate) as last_order_date
+--         FROM Sales.Orders
+--         GROUP BY CustomerId
+--     ),
+--     CTE_ranked_customers
+--     AS
+--     (
+--         SELECT CustomerId, total_sales,
+--             rank() over(order by total_sales desc) as customer_rank
+--         from CTE_total_sales
+--     )
+--     ,
+--     CTE_customer_segments
+--     AS
+--     (
+--         SELECT CustomerId, total_sales,
+--             NTILE(3) OVER(order by total_sales desc) as bucket
+--         FROM CTE_total_sales
+--     )
+
+-- -- SELECT *
+-- -- from CTE_total_sales
+-- -- ORDER BY total_sales DESC
+
+-- SELECT c.CustomerID, c.FirstName, c.LastName, ts.total_sales, ld.last_order_date, rn.customer_rank,
+--     case when cs.bucket =1 then 'high sales'
+--      when cs.bucket =2 then 'medium sales'
+--      else 'low sales' 
+-- end as sales_category
+-- FROM Sales.Customers as c
+-- LEFT JOIN CTE_total_sales as ts
+-- ON c.CustomerID = ts.CustomerId
+-- LEFT JOIN CTE_last_order_date as ld
+-- ON c.CustomerID = ld.CustomerId
+-- LEFT JOIN CTE_ranked_customers as rn
+-- on c.CustomerID = rn.CustomerID
+-- LEFT JOIN CTE_customer_segments as cs
+-- on c.CustomerID = cs.CustomerID
+
+-- WITH
+--     series
+--     AS
+--     (
+--                     SELECT 1 as mynumber
+--         UNION ALL
+--             SELECT
+--                 mynumber + 1
+--             from series
+--             WHERE mynumber < 20
+--     )
+
+-- SELECT *
+-- from series
+
+with
+    CTE_emp_hierarchy
+    AS
+    (
+                    SELECT
+                EmployeeID,
+                FirstName,
+                ManagerID,
+                1 as level
+            From Sales.Employees
+            WHERE ManagerID is null
+        UNION ALL
+            SELECT
+                e.EmployeeID,
+                e.FirstName,
+                e.ManagerID,
+                level+1
+            FROM Sales.Employees as e
+                INNER join CTE_emp_hierarchy as ceh
+                on e.ManagerID = ceh.EmployeeID
+    )
+
+SELECT *
+FROM CTE_emp_hierarchy
