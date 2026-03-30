@@ -261,27 +261,45 @@ use SalesDB;
 -- SELECT *
 -- from series
 
-with
-    CTE_emp_hierarchy
-    AS
-    (
-                    SELECT
-                EmployeeID,
-                FirstName,
-                ManagerID,
-                1 as level
-            From Sales.Employees
-            WHERE ManagerID is null
-        UNION ALL
-            SELECT
-                e.EmployeeID,
-                e.FirstName,
-                e.ManagerID,
-                level+1
-            FROM Sales.Employees as e
-                INNER join CTE_emp_hierarchy as ceh
-                on e.ManagerID = ceh.EmployeeID
-    )
+-- with
+--     CTE_emp_hierarchy
+--     AS
+--     (
+--                     SELECT
+--                 EmployeeID,
+--                 FirstName,
+--                 ManagerID,
+--                 1 as level
+--             From Sales.Employees
+--             WHERE ManagerID is null
+--         UNION ALL
+--             SELECT
+--                 e.EmployeeID,
+--                 e.FirstName,
+--                 e.ManagerID,
+--                 level+1
+--             FROM Sales.Employees as e
+--                 INNER join CTE_emp_hierarchy as ceh
+--                 on e.ManagerID = ceh.EmployeeID
+--     )
 
-SELECT *
-FROM CTE_emp_hierarchy
+-- SELECT *
+-- FROM CTE_emp_hierarchy
+
+-- CREATE VIEW Sales.v_monthly_summary AS
+-- (
+--     SELECT 
+--     MONTH(orderDate) ordermonth,
+--     SUM(Sales) as total_sales,
+--     COUNT(orderID) as total_orders,
+--     SUM(quantity) as total_quantities
+--     FROM Sales.Orders
+--     GROUP BY MONTH(OrderDate)
+-- )
+
+-- SELECT ordermonth,
+--     total_sales,
+--     SUM(total_sales) OVER(ORDER BY ordermonth) as running_total_sales
+-- from v_monthly_summary
+
+-- drop view v_monthly_summary
