@@ -303,3 +303,17 @@ use SalesDB;
 -- from v_monthly_summary
 
 -- drop view v_monthly_summary
+
+SELECT *
+INTO #temp_sales
+from Sales.Orders
+
+SELECT *
+from #temp_sales
+
+SELECT *
+FROM tempdb.sys.tables
+WHERE name LIKE '#temp_sales%';
+
+DELETE from #temp_sales
+WHERE OrderStatus = 'Delivered'
