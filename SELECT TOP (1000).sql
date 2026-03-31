@@ -304,16 +304,73 @@ use SalesDB;
 
 -- drop view v_monthly_summary
 
-SELECT *
-INTO #temp_sales
-from Sales.Orders
+-- SELECT *
+-- INTO #temp_sales
+-- from Sales.Orders
 
-SELECT *
-from #temp_sales
+-- SELECT *
+-- from #temp_sales
 
-SELECT *
-FROM tempdb.sys.tables
-WHERE name LIKE '#temp_sales%';
+-- SELECT *
+-- FROM tempdb.sys.tables
+-- WHERE name LIKE '#temp_sales%';
 
-DELETE from #temp_sales
-WHERE OrderStatus = 'Delivered'
+-- DELETE from #temp_sales
+-- WHERE OrderStatus = 'Delivered'
+
+-- SELECT *
+-- into Sales.ordersTest
+-- from #temp_sales
+
+-- SELECT *
+-- from Sales.ordersTest
+
+-- GO
+
+-- ALTER PROCEDURE customerSummary
+--     @country NVARCHAR(50)
+-- AS
+-- BEGIN
+--     SELECT *
+--     from Sales.Customers
+--     WHERE Country = @country
+-- END
+
+-- EXEC customerSummary @country = 'Germany'
+
+-- EXEC customerSummary @country = 'USA'
+
+-- Drop PROCEDURE customerSummary
+
+
+-- CREATE TABLE Sales.EmployeeLogs
+-- (
+--     LogID INT IDENTITY(1,1) PRIMARY KEY,
+--     EmployeeID INT,
+--     LogMessage VARCHAR(200),
+--     LogDate DATE
+-- )
+
+-- GO
+
+-- CREATE TRIGGER trg_AfterInsertEmployee ON Sales.Employees
+-- After INSERT
+-- AS
+-- BEGIN
+--     INSERT into Sales.EmployeeLogs
+--         (EmployeeID, LogMessage, LogDate)
+--     SELECT EmployeeID,
+--         'New employee added = ' + CAST(EmployeeID as varchar),
+--         GETDATE()
+--     FROM inserted
+-- END
+
+-- SELECT *
+-- from Sales.EmployeeLogs
+
+-- INSERT into Sales.Employees
+-- VALUES
+--     (7, 'venkat', 'do', 'ceo', '2002-01-12', 'M', 500000000, 1)
+
+-- SELECT *
+-- from Sales.Employees
