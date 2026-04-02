@@ -374,3 +374,20 @@ use SalesDB;
 
 -- SELECT *
 -- from Sales.Employees
+
+SELECT *
+into Sales.DBcustomers
+FROM Sales.Customers
+
+CREATE CLUSTERED INDEX idx_DBcustomers_CustomerID
+on Sales.DBcustomers(CustomerID)
+
+CREATE NONCLUSTERED INDEX idx_DBcustomers_LastName
+ON Sales.DBcustomers(LastName)
+
+CREATE INDEX idx_DBcustomers_CountryScore
+on Sales.DBcustomers(Country, Score)
+
+CREATE NONCLUSTERED INDEX idx_DBcustomers_Country
+on Sales.Customers(Country)
+WHERE Country = 'USA'
