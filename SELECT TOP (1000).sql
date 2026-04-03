@@ -375,19 +375,100 @@ use SalesDB;
 -- SELECT *
 -- from Sales.Employees
 
-SELECT *
-into Sales.DBcustomers
-FROM Sales.Customers
+-- SELECT *
+-- into Sales.DBcustomers
+-- FROM Sales.Customers
 
-CREATE CLUSTERED INDEX idx_DBcustomers_CustomerID
-on Sales.DBcustomers(CustomerID)
+-- CREATE CLUSTERED INDEX idx_DBcustomers_CustomerID
+-- on Sales.DBcustomers(CustomerID)
 
-CREATE NONCLUSTERED INDEX idx_DBcustomers_LastName
-ON Sales.DBcustomers(LastName)
+-- CREATE NONCLUSTERED INDEX idx_DBcustomers_LastName
+-- ON Sales.DBcustomers(LastName)
 
-CREATE INDEX idx_DBcustomers_CountryScore
-on Sales.DBcustomers(Country, Score)
+-- CREATE INDEX idx_DBcustomers_CountryScore
+-- on Sales.DBcustomers(Country, Score)
 
-CREATE NONCLUSTERED INDEX idx_DBcustomers_Country
-on Sales.Customers(Country)
-WHERE Country = 'USA'
+-- CREATE NONCLUSTERED INDEX idx_DBcustomers_Country
+-- on Sales.Customers(Country)
+-- WHERE Country = 'USA'
+
+-- --  Monitoring Index usage in below code
+
+-- SELECT *
+-- FROM sys.dm_db_index_usage_stats
+
+-- EXEC sp_helpindex 'Sales.DBcustomers';
+
+-- SELECT tbl.name as TableName,
+--     i.object_id,
+--     i.name AS INDEXName,
+--     i.type_desc as IndexType,
+--     i.is_primary_key as ISPrimaryKey,
+--     i.is_unique as ISUnique,
+--     s.user_seeks as UserSeeks,
+--     s.user_scans as UserScans,
+--     s.user_lookups as userLookups,
+--     s.user_updates as UserUpdates,
+--     COALESCE(s.last_user_seek, s.last_user_scan) LastUpdate
+-- FROM sys.indexes AS i
+--     JOIN sys.tables AS tbl
+--     ON i.object_id = tbl.object_id
+--     LEFT JOIN sys.dm_db_index_usage_stats AS s
+--     ON i.object_id = s.object_id AND i.index_id = s.index_id
+-- ORDER BY tbl.name, i.name
+
+-- --  To see missing indexes recommendations
+-- select *
+-- from sys.dm_db_missing_index_details
+
+-- -- To identify duplicate indexes in a table
+-- SELECT tbl.name as TableName,
+--     col.name as IndexColumn,
+--     idx.name as IndexName,
+--     idx.type_desc as IndexType,
+--     COUNT(*) OVER(PARTITION BY tbl.name, col.name) as ColumnCount
+-- FROM sys.tables AS tbl
+--     JOIN sys.indexes AS idx
+--     ON tbl.object_id = idx.object_id
+--     JOIN sys.index_columns AS ic
+--     ON idx.object_id = ic.object_id AND idx.index_id = ic.index_id
+--     JOIN sys.columns AS col
+--     ON ic.object_id = col.object_id AND ic.column_id = col.column_id
+-- ORDER BY ColumnCount DESC
+
+-- -- update statistics to make better execution plan
+-- SELECT SCHEMA_NAME(t.schema_id) as SchemaName,
+--     t.name as TableName,
+--     s.name as StatisticsName,
+--     sp.last_updated as LastUpdate,
+--     DATEDIFF(day, sp.last_updated, GETDATE()) as LastUpdateDay,
+--     sp.rows as 'Rows',
+--     sp.modification_counter as ModificationsSinceLastUpdate
+-- FROM sys.tables t
+--     JOIN sys.stats s
+--     ON t.object_id = s.object_id
+-- CROSS APPLY sys.dm_db_stats_properties(t.object_id, s.stats_id) AS sp
+-- ORDER BY sp.modification_counter DESC
+
+-- UPDATE statistics Sales.Customers _WA_Sys_00000004_35BCFE0A
+
+-- UPDATE statistics Sales.Customers
+
+-- EXEC sp_updatestats
+
+-- -- Monitor Fragmentation
+-- Select tbl.name as TableName,
+--     idx.name as IndexName,
+--     s.avg_fragmentation_in_percent,
+--     s.page_count
+-- from sys.dm_db_index_physical_stats(DB_ID(), NULL, NULL, NULL, 'LIMITED') as s
+--     JOIN sys.indexes AS idx
+--     ON s.object_id = idx.object_id AND s.index_id = idx.index_id
+--     JOIN sys.tables AS tbl
+--     ON s.object_id = tbl.object_id
+-- ORDER BY s.avg_fragmentation_in_percent DESC
+
+-- ALTER INDEX idx_DBcustomers_Country on Sales.Customers REORGANIZE
+
+-- ALTER INDEX idx_DBcustomers_Country on Sales.Customers REBUILD
+
