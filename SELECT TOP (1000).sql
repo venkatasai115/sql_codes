@@ -472,3 +472,106 @@ use SalesDB;
 
 -- ALTER INDEX idx_DBcustomers_Country on Sales.Customers REBUILD
 
+-- -- step 1 : create partition function
+-- CREATE PARTITION FUNCTION PartitionByyear(DATE)
+-- AS RANGE LEFT FOR VALUES('2023-12-31', '2024-12-31', '2025-12-31')
+
+-- -- Query lists all existing partition function
+-- SELECT name, function_id, type, type_desc,
+--     boundary_value_on_right
+-- FROM sys.partition_functions
+
+-- -- step 2 :create Filegroups
+-- ALTER DATABASE SalesDB ADD FILEGROUP FG_2023;
+-- ALTER DATABASE SalesDB ADD FILEGROUP FG_2024;
+-- ALTER DATABASE SalesDB ADD FILEGROUP FG_2025;
+-- ALTER DATABASE SalesDB ADD FILEGROUP FG_2026;
+
+-- -- query that lists all filegroups
+-- SELECT *
+-- from sys.filegroups
+-- WHERE [type] = 'FG'
+
+-- -- step 3 : Add .ndf Files to each filegroup
+-- ALTER DATABASE SalesDB ADD FILE 
+-- (
+--     NAME = P_2023, -- logical name
+--     FILENAME = '/Users/venkatasai/Documents/SQL/P_2023.ndf'
+-- ) To FILEGROUP FG_2023;
+
+-- ALTER DATABASE SalesDB ADD FILE 
+-- (
+--     NAME = P_2024, -- logical name
+--     FILENAME = '/Users/venkatasai/Documents/SQL/P_2024.ndf'
+-- ) To FILEGROUP FG_2024;
+
+-- ALTER DATABASE SalesDB ADD FILE 
+-- (
+--     NAME = P_2025, -- logical name
+--     FILENAME = '/Users/venkatasai/Documents/SQL/P_2025.ndf'
+-- ) To FILEGROUP FG_2025;
+
+-- ALTER DATABASE SalesDB ADD FILE 
+-- (
+--     NAME = P_2026, -- logical name
+--     FILENAME = '/Users/venkatasai/Documents/SQL/P_2026.ndf'
+-- ) To FILEGROUP FG_2026;
+
+-- -- query to see all files
+-- SELECT fg.name as FilegroupName,
+--     mf.name as LogicalFileName,
+--     mf.physical_name as PhysicalFilePath,
+--     mf.size / 128 as SizeinMB
+-- FROM sys.filegroups AS fg
+--     JOIN sys.master_files AS mf
+--     ON fg.data_space_id = mf.data_space_id
+-- WHERE mf.database_id =DB_ID('SalesDB');
+
+-- -- step 4 : Create Partiotion scheme
+-- CREATE PARTITION SCHEME schemePartitionByYear
+-- as PARTITION PartitionByyear
+-- To (FG_2023, FG_2024, FG_2025, FG_2026)
+
+-- -- Query to check partition scheme
+-- SELECT ps.name as PartitionSchemeName,
+--     pf.name as PartitionFunctionName,
+--     ds.destination_id as partitionNumber,
+--     fg.name as FilegroupName
+-- FROM sys.partition_schemes AS ps
+--     JOIN sys.partition_functions AS pf
+--     ON ps.function_id = pf.function_id
+--     JOIN sys.destination_data_spaces AS ds
+--     ON ps.data_space_id = ds.partition_scheme_id
+--     JOIN sys.filegroups AS fg
+--     ON ds.data_space_id = fg.data_space_id;
+
+-- -- step 5 : create the partiotioned table
+-- CREATE TABLE Sales.Orders_Partitioned
+-- (
+--     OrderID INT,
+--     OrderDate DATE,
+--     Sales INT
+-- ) ON schemePartitionByYear (OrderDate)
+
+-- INSERT INTO Sales.Orders_Partitioned
+-- VALUES
+--     (1, '2023-05-15', 100);
+-- INSERT INTO Sales.Orders_Partitioned
+-- VALUES
+--     (2, '2024-07-20', 50);
+-- INSERT INTO Sales.Orders_Partitioned
+-- VALUES
+--     (3, '2025-12-31', 50);
+
+-- SELECT *
+-- FROM Sales.Orders_Partitioned
+
+-- -- query to check all partitions mapped
+-- SELECT p.partition_number PartitionNumber,
+--     f.name PartitionFilegroup,
+--     p.rows as NumberOfRows
+-- FROM sys.partitions p
+--     join sys.destination_data_spaces dds on p.partition_number = dds.destination_id
+--     JOIN sys.filegroups f on dds.data_space_id = f.data_space_id
+-- WHERE OBJECT_NAME(p.object_id) = 'Orders_Partitioned'
+
